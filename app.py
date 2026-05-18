@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 import datetime
 
 # --- Page Configuration ---
@@ -23,7 +23,7 @@ st.markdown("""
     color: #ffffff;
 }
 
-/* Hide default Streamlit elements for a cleaner look */
+/* Hide default Streamlit elements */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {background: transparent !important;}
@@ -55,7 +55,7 @@ h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
     letter-spacing: 0.5px;
 }
 
-/* Form Inputs Styling (Making them match the glass theme) */
+/* Form Inputs Styling */
 .stTextInput>div>div>input, 
 .stNumberInput>div>div>input, 
 .stSelectbox>div>div>div, 
@@ -102,11 +102,7 @@ h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
 st.markdown("<h1 style='text-align: center; margin-bottom: 2rem;'>🗺️ Perfect Hangout Planner</h1>", unsafe_allow_html=True)
 
 # --- API Key Setup ---
-# Check if API key exists in Streamlit secrets, otherwise ask for it
-try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-except (FileNotFoundError, KeyError):
-    api_key = st.text_input("Enter your Gemini API Key:", type="password", placeholder="Paste your API key here...")
+api_key = st.text_input("Enter your Groq API Key:", type="password", placeholder="Paste your API key here...")
 
 # --- Input Form ---
 with st.container():
@@ -142,12 +138,12 @@ with st.container():
 # --- Generation Logic ---
 if st.button("Generate Hangout Plan"):
     if not api_key:
-        st.warning("Please enter your API Key in the settings or in the secrets.toml file to generate the plan.")
+        st.warning("Please enter your Groq API Key to generate the plan.")
     else:
         with st.spinner("Analyzing routes, crunching budgets, and drafting the itinerary..."):
             try:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash') 
+                # Initialize Groq Client
+                client = Groq(api_key=api_key)
 
                 prompt = f"""
                 You are an expert local trip planner. Create a highly detailed, chronological timetable for a short hangout based on the following parameters:
@@ -170,11 +166,26 @@ if st.button("Generate Hangout Plan"):
                 Format the output beautifully using Markdown. Use clear time blocks (e.g., **11:00 AM - 11:30 AM: Travel**). Do not use nested bullet points. Ensure the tone is structured and professional.
                 """
 
-                response = model.generate_content(prompt)
+                # Call the Groq API (using Llama 3 for fast, intelligent generation)
+                chat_completion = client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a highly efficient, budget-conscious local travel planner."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    model="llama3-8b-8192", 
+                    temperature=0.7,
+                )
                 
+                # Render Results
                 st.markdown('<div class="glass-container">', unsafe_allow_html=True)
                 st.success("✨ Itinerary Generated Successfully!")
-                st.markdown(response.text)
+                st.markdown(chat_completion.choices[0].message.content)
                 st.markdown('</div>', unsafe_allow_html=True)
 
             except Exception as e:
