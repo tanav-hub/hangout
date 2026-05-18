@@ -5,21 +5,15 @@ import datetime
 # --- Page Configuration ---
 st.set_page_config(page_title="Hangout Planner", page_icon="🗺️", layout="centered")
 
-# --- Professional Liquid Glassmorphism CSS ---
+# --- Professional Liquid Glassmorphism CSS with Background Image ---
 st.markdown("""
 <style>
-/* Smoothly animated liquid background */
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Base App Styling */
+/* Stunning Background Image */
 .stApp {
-    background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #0f172a);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    background-image: url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: #ffffff;
 }
 
@@ -30,28 +24,28 @@ header {background: transparent !important;}
 
 /* Liquid Glass Container */
 .glass-container {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 24px;
     padding: 2.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
     margin-bottom: 2rem;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, background 0.4s ease;
 }
 
 /* Custom Animation on Hover */
 .glass-container:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 45px 0 rgba(0, 0, 0, 0.4);
-    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 15px 45px 0 rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.08);
 }
 
-/* Strict Text Visibility Rules */
+/* Strict Text Visibility Rules - Ensuring high contrast against the background */
 h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
     color: #ffffff !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
     letter-spacing: 0.5px;
 }
 
@@ -60,9 +54,9 @@ h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
 .stNumberInput>div>div>input, 
 .stSelectbox>div>div>div, 
 .stTimeInput>div>div>input {
-    background-color: rgba(0, 0, 0, 0.2) !important;
+    background-color: rgba(0, 0, 0, 0.35) !important;
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 8px !important;
 }
 
@@ -71,8 +65,8 @@ h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
 .stNumberInput>div>div>input:focus, 
 .stSelectbox>div>div>div:focus, 
 .stTimeInput>div>div>input:focus {
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Professional Primary Button */
@@ -86,23 +80,20 @@ h1, h2, h3, h4, h5, h6, p, label, .stMarkdown, .stText {
     font-weight: 600;
     font-size: 1.1rem;
     letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.5);
     transition: all 0.3s ease;
     text-shadow: none;
 }
 
 .stButton>button:hover {
     transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.7);
     background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
 }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<h1 style='text-align: center; margin-bottom: 2rem;'>🗺️ Perfect Hangout Planner</h1>", unsafe_allow_html=True)
-
-# --- API Key Setup ---
-api_key = st.text_input("Enter your Groq API Key:", type="password", placeholder="Paste your API key here...")
 
 # --- Input Form ---
 with st.container():
@@ -137,12 +128,15 @@ with st.container():
 
 # --- Generation Logic ---
 if st.button("Generate Hangout Plan"):
-    if not api_key:
-        st.warning("Please enter your Groq API Key to generate the plan.")
+    # Securely checking for the API Key in Streamlit Secrets
+    if "GROQ_API_KEY" not in st.secrets:
+        st.error("API Key not found! Please ensure it is configured in Streamlit Secrets.")
     else:
+        api_key = st.secrets["GROQ_API_KEY"]
+        
         with st.spinner("Analyzing routes, crunching budgets, and drafting the itinerary..."):
             try:
-                # Initialize Groq Client
+                # Initialize Groq Client securely
                 client = Groq(api_key=api_key)
 
                 prompt = f"""
@@ -166,7 +160,7 @@ if st.button("Generate Hangout Plan"):
                 Format the output beautifully using Markdown. Use clear time blocks (e.g., **11:00 AM - 11:30 AM: Travel**). Do not use nested bullet points. Ensure the tone is structured and professional.
                 """
 
-                # Call the Groq API (using Llama 3 for fast, intelligent generation)
+                # Call the Groq API 
                 chat_completion = client.chat.completions.create(
                     messages=[
                         {
