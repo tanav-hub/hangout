@@ -160,7 +160,7 @@ if st.button("Generate Hangout Plan"):
                 Format the output beautifully using Markdown. Use clear time blocks (e.g., **11:00 AM - 11:30 AM: Travel**). Do not use nested bullet points. Ensure the tone is structured and professional.
                 """
 
-                # Call the Groq API 
+                # Call the Groq API using Llama 3.3 70B
                 chat_completion = client.chat.completions.create(
                     messages=[
                         {
@@ -172,7 +172,7 @@ if st.button("Generate Hangout Plan"):
                             "content": prompt
                         }
                     ],
-                    model="llama3-8b-8192", 
+                    model="llama-3.3-70b-versatile", 
                     temperature=0.7,
                 )
                 
