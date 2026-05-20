@@ -128,44 +128,47 @@ with st.container():
 
 # --- Generation Logic ---
 if st.button("Generate Hangout Plan"):
-    # Securely checking for the API Key in Streamlit Secrets
     if "GROQ_API_KEY" not in st.secrets:
         st.error("API Key not found! Please ensure it is configured in Streamlit Secrets.")
     else:
         api_key = st.secrets["GROQ_API_KEY"]
         
-        with st.spinner("Analyzing routes, crunching budgets, and drafting the itinerary..."):
+        with st.spinner("Mapping routes, pulling local venue data, and crunching the budget..."):
             try:
-                # Initialize Groq Client securely
                 client = Groq(api_key=api_key)
 
+                # --- REFINED PROMPT ENGINEERING ---
                 prompt = f"""
-                You are an expert local trip planner. Create a highly detailed, chronological timetable for a short hangout based on the following parameters:
+                You are an expert, hyper-local trip planner with up-to-date knowledge of current (2026) prices, transport routes, and real-world venues. 
+                
+                Create a detailed, step-by-step hangout roadmap based on these parameters:
                 - Start Location: {start_location}
                 - Hangout Location: {hangout_location}
                 - Timing: {start_time.strftime('%I:%M %p')} to {end_time.strftime('%I:%M %p')}
-                - Number of People: {people_count}
-                - Budget per person: ₹{budget}
-                - Vibe/Place: {hangout_type}
+                - Group Size: {people_count} people
+                - Budget: ₹{budget} per person (STRICT LIMIT)
+                - Vibe/Activity: {hangout_type}
                 - Transport Mode: {transport_mode}
-                - Eating Preferences: {eating}
+                - Dining Preference: {eating}
 
-                Provide a perfectly planned timetable. You must include:
-                1. Exact meeting spots for the group.
-                2. Estimated travel times considering {transport_mode} and typical traffic/external factors between {start_location} and {hangout_location}.
-                3. Specific real-world venue/cafe recommendations in {hangout_location} that fit the ₹{budget} per person budget.
-                4. A breakdown of the budget (transport vs. food vs. activities).
-                5. Total estimated cost per person to ensure it stays strictly under budget.
+                CRITICAL INSTRUCTIONS:
+                1. **Real Entities Only:** Name ACTUAL cafes, restaurants, parks, or malls in {hangout_location}. Do not use generic placeholders. If they want a cafe, name a specific, popular local cafe that fits their budget.
+                2. **Realistic 2026 Pricing:** Factor in current inflation for India. Use realistic estimates for {transport_mode} (e.g., current auto-rickshaw meter rates, Rapido fares, local bus/metro tickets) and food menus.
+                3. **Actionable Roadmap:** 
+                   - Define an exact, recognizable meeting landmark in {start_location}.
+                   - Provide a step-by-step transit roadmap between locations.
+                4. **Itemized Budget:** You MUST end with a receipt-style breakdown proving the plan stays under the ₹{budget} per person limit (split into Transport, Food, and Activities). 
 
-                Format the output beautifully using Markdown. Use clear time blocks (e.g., **11:00 AM - 11:30 AM: Travel**). Do not use nested bullet points. Ensure the tone is structured and professional.
+                Format the output beautifully using Markdown. 
+                Use clear time blocks (e.g., **11:00 AM - 11:30 AM: Transit via [Mode]**). 
+                Do not use nested bullet points.
                 """
 
-                # Call the Groq API using Llama 3.3 70B
                 chat_completion = client.chat.completions.create(
                     messages=[
                         {
                             "role": "system",
-                            "content": "You are a highly efficient, budget-conscious local travel planner."
+                            "content": "You are an elite local concierge and routing expert. You prioritize absolute geographical accuracy, real-world businesses, and strict budget adherence."
                         },
                         {
                             "role": "user",
@@ -173,12 +176,12 @@ if st.button("Generate Hangout Plan"):
                         }
                     ],
                     model="llama-3.3-70b-versatile", 
-                    temperature=0.7,
+                    temperature=0.4, # Lowered temperature slightly for more factual/less creative entity generation
                 )
                 
                 # Render Results
                 st.markdown('<div class="glass-container">', unsafe_allow_html=True)
-                st.success("✨ Itinerary Generated Successfully!")
+                st.success("✨ Detailed Roadmap Generated Successfully!")
                 st.markdown(chat_completion.choices[0].message.content)
                 st.markdown('</div>', unsafe_allow_html=True)
 
